@@ -1,5 +1,7 @@
 # non-ai-design-skill-pack
 
+[English](README.md)
+
 AI 코딩 에이전트용 범용 디자인 스킬 팩입니다.
 
 `non-ai-design-skill-pack`은 AI 코딩 에이전트가 일반적인 AI 생성물처럼 보이는 UI가 아니라, 의도적이고 제품 맥락에 맞으며 접근성과 유지보수성을 갖춘 웹 인터페이스를 만들도록 돕는 Markdown 기반 지침 모음입니다.
@@ -49,8 +51,10 @@ non-ai-design-skill-pack/
 ├─ README-KR.md
 ├─ SKILL.md
 ├─ DESIGN.md
-└─ references/
-   └─ UI_REVIEW_CHECKLIST.md
+├─ references/
+│  └─ UI_REVIEW_CHECKLIST.md
+└─ examples/
+   └─ vibe-coding-platform.html
 ```
 
 ## 파일 설명
@@ -128,6 +132,14 @@ AI 에이전트에게 다음 항목을 감사하도록 요청할 때 사용합�
 - 성능
 - AI스러운 디자인 문제
 - 릴리즈 준비 상태
+
+### `examples/`
+
+이 스킬 팩을 사용해 완성한 예시 페이지 모음입니다.
+
+완성된 구현이 어떤 모습인지 — 디자인 결정, 토큰 사용, 컴포넌트 상태, 반응형 레이아웃이 실제로 어떻게 적용되는지 — 참고 자료로 사용합니다.
+
+- [`vibe-coding-platform.html`](examples/vibe-coding-platform.html) — 바이브코딩 강좌 플랫폼 랜딩페이지. Crafted Engineering 디자인 시스템을 처음부터 끝까지 적용한 단일 HTML 파일.
 
 ## 권장 사용법
 
