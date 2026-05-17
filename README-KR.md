@@ -54,7 +54,9 @@ non-ai-design-skill-pack/
 ├─ references/
 │  └─ UI_REVIEW_CHECKLIST.md
 └─ examples/
-   └─ vibe-coding-platform.html
+   ├─ vibe-coding-platform.html
+   ├─ saas-analytics-dashboard.html
+   └─ developer-newsletter.html
 ```
 
 ## 파일 설명
@@ -140,6 +142,8 @@ AI 에이전트에게 다음 항목을 감사하도록 요청할 때 사용합�
 완성된 구현이 어떤 모습인지 — 디자인 결정, 토큰 사용, 컴포넌트 상태, 반응형 레이아웃이 실제로 어떻게 적용되는지 — 참고 자료로 사용합니다.
 
 - [`vibe-coding-platform.html`](examples/vibe-coding-platform.html) — 바이브코딩 강좌 플랫폼 랜딩페이지. Crafted Engineering 디자인 시스템을 처음부터 끝까지 적용한 단일 HTML 파일.
+- [`saas-analytics-dashboard.html`](examples/saas-analytics-dashboard.html) — SaaS 분석 대시보드. 사이드바 + 워크스페이스 레이아웃으로 KPI 카드, 매출 추이 차트, 플랜별 비중, 정렬·필터 가능한 고객 테이블을 포함한 단일 HTML 파일.
+- [`developer-newsletter.html`](examples/developer-newsletter.html) — 개발자 뉴스레터 랜딩페이지. 에디토리얼-아카이브 레이아웃으로 이메일 구독 폼, 샘플 이슈 프리뷰, 4개 콘텐츠 영역, 추천사, 이슈 아카이브 리스트를 포함한 단일 HTML 파일.
 
 ## 권장 사용법
 

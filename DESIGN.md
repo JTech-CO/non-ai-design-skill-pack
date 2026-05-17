@@ -217,6 +217,90 @@ Use success, warning, danger, and info only for actual state.
 
 Do not use status colors as decoration.
 
+## Palette Variations
+
+The default Crafted Engineering palette uses warm parchment and rust red. This combination works well for editorial, marketing, and general-purpose technical products. For other product contexts, three alternative palettes are defined below. Each replaces the background tone, accent, and surface-inverse — the three tokens that define a palette's identity — while keeping the neutral and status tokens stable.
+
+### Crafted Warm (default)
+
+The original palette. Warm parchment surfaces, rust-red accent, deep neutral inverse.
+
+```css
+background:     #F6F3EE
+background-subtle: #ECE7DE
+accent:         #B94A2F
+accent-hover:   #9E3E28
+accent-soft:    #F1D8CF
+surface-inverse: #111315
+text-muted:     #5F676F
+text-subtle:    #8A929A
+```
+
+Best for: editorial landing pages, course platforms, portfolio sites, warm consumer products.
+
+### Verdant
+
+Forest green accent on warm off-white. Communicates growth, craft, and technical confidence without the urgency of red.
+
+```css
+background:     #F0EDE5
+background-subtle: #E7E2D8
+accent:         #1A6B46
+accent-hover:   #155939
+accent-soft:    #D1FAE5
+surface-inverse: #0D1C14
+text-muted:     #4F5A51
+text-subtle:    #7E8A7F
+```
+
+Best for: learning platforms, productivity tools, sustainability products, developer tools with a calm, trustworthy tone.
+
+### Precision
+
+Cobalt blue accent on cool slate. Communicates data clarity, enterprise reliability, and analytical precision.
+
+```css
+background:     #F0F4F8
+background-subtle: #E2EBF4
+accent:         #1B4FDB
+accent-hover:   #1840C4
+accent-soft:    #DBEAFE
+surface-inverse: #081428
+border:         #C8D4E2
+border-strong:  #9BB0C5
+text-muted:     #48607A
+text-subtle:    #7D97AC
+```
+
+Best for: SaaS dashboards, analytics products, admin panels, B2B tools, financial interfaces.
+
+### Amber Press
+
+Warm amber accent on aged parchment. Communicates editorial authority, premium print quality, and journalistic credibility.
+
+```css
+background:     #F5EDD5
+background-subtle: #EDE4C5
+surface:        #FDFAF0
+surface-raised: #F9F4E3
+accent:         #B07B13
+accent-hover:   #946409
+accent-soft:    #FEF3C7
+surface-inverse: #1A1410
+border:         #D9CFAF
+border-strong:  #BAB08E
+text-muted:     #5C5240
+text-subtle:    #8A7E68
+```
+
+Best for: newsletters, publications, editorial blogs, documentation, premium content products.
+
+### How to apply a variation
+
+Replace the background tone, accent triplet (`accent`, `accent-hover`, `accent-soft`), and `surface-inverse` in the token block. Keep `focus`, `success`, `warning`, `danger`, and `info` unchanged — these carry semantic meaning and must remain accessible regardless of palette.
+
+Change the design thesis first, then adjust tokens. Do not change tokens without updating the rationale for why the new palette fits the product.
+
 ## Typography Usage
 
 ### Display and Headings

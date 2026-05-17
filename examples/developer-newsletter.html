@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Deploy — Engineering Decisions Worth Understanding</title>
+  <meta name="description" content="A weekly newsletter covering the system design, tooling, and decisions behind software that scales. Free. Every Tuesday.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,620;0,9..144,650;1,9..144,400;1,9..144,620&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       CRAFTED ENGINEERING — Design Tokens
+    ============================================================ */
+    :root {
+      --color-bg:             #F5EDD5;
+      --color-bg-subtle:      #EDE4C5;
+      --color-surface:        #FDFAF0;
+      --color-surface-raised: #F9F4E3;
+      --color-surface-inv:    #1A1410;
+      --color-border:         #D9CFAF;
+      --color-border-strong:  #BAB08E;
+      --color-text:           #1A1410;
+      --color-text-muted:     #5C5240;
+      --color-text-subtle:    #8A7E68;
+      --color-accent:         #B07B13;
+      --color-accent-hover:   #946409;
+      --color-accent-soft:    #FEF3C7;
+      --color-focus:          #2457C5;
+      --color-success:        #18794E;
+      --color-success-bg:     #DCFCE7;
+      --color-danger:         #B42318;
+      --color-danger-bg:      #FEE2E2;
+
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-sans:    'Inter', ui-sans-serif, system-ui, sans-serif;
+      --font-mono:    'JetBrains Mono', SFMono-Regular, Consolas, monospace;
+
+      --sp-1: 0.25rem; --sp-2: 0.5rem;  --sp-3: 0.75rem; --sp-4: 1rem;
+      --sp-5: 1.25rem; --sp-6: 1.5rem;  --sp-8: 2rem;    --sp-10: 2.5rem;
+      --sp-12: 3rem;   --sp-16: 4rem;   --sp-20: 5rem;   --sp-24: 6rem;
+
+      --radius-xs:   0.25rem;
+      --radius-sm:   0.5rem;
+      --radius-md:   0.875rem;
+      --radius-lg:   1.25rem;
+      --radius-full: 999px;
+
+      --shadow-sm: 0 1px 2px rgba(17,19,21,0.06);
+      --shadow-md: 0 12px 30px rgba(17,19,21,0.10);
+      --shadow-lg: 0 24px 60px rgba(17,19,21,0.14);
+
+      --motion-fast: 140ms ease-out;
+      --motion-std:  220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      --motion-slow: 420ms cubic-bezier(0.16, 1, 0.3, 1);
+
+      --max-w: 1100px;
+      --col-gap: var(--sp-8);
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      line-height: 1.65;
+      color: var(--color-text);
+      background: var(--color-bg);
+      -webkit-font-smoothing: antialiased;
+    }
+    a  { color: inherit; text-decoration: none; }
+    button { font: inherit; cursor: pointer; border: none; background: none; }
+    input  { font: inherit; }
+    img    { max-width: 100%; display: block; }
+    svg    { display: block; }
+
+    :focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 3px;
+    }
+
+    .container {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 var(--sp-6);
+    }
+
+    /* ============================================================
+       NAV
+    ============================================================ */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 80;
+      background: rgba(246,243,238,0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .nav-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 var(--sp-6);
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-6);
+    }
+
+    .nav-wordmark {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      font-family: var(--font-display);
+      font-weight: 650;
+      font-size: 1.0625rem;
+      letter-spacing: -0.03em;
+      color: var(--color-text);
+      flex-shrink: 0;
+    }
+
+    .wordmark-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-full);
+      background: var(--color-accent);
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-1);
+    }
+
+    .nav-link {
+      padding: var(--sp-2) var(--sp-3);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      border-radius: var(--radius-sm);
+      transition: color var(--motion-fast), background var(--motion-fast);
+    }
+    .nav-link:hover { color: var(--color-text); background: var(--color-bg-subtle); }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-2);
+      padding: var(--sp-2) var(--sp-4);
+      background: var(--color-accent);
+      color: #fff;
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: background var(--motion-fast);
+    }
+    .nav-cta:hover { background: var(--color-accent-hover); }
+
+    .nav-hamburger {
+      display: none;
+      width: 36px;
+      height: 36px;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      color: var(--color-text-muted);
+      transition: background var(--motion-fast);
+    }
+    .nav-hamburger:hover { background: var(--color-bg-subtle); }
+
+    /* ============================================================
+       HERO
+    ============================================================ */
+    .hero {
+      padding: var(--sp-20) 0 var(--sp-16);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .hero-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 var(--sp-6);
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: var(--sp-16);
+      align-items: center;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-2);
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: var(--sp-5);
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: var(--color-accent);
+    }
+
+    .hero-headline {
+      font-family: var(--font-display);
+      font-size: clamp(2.25rem, 5vw, 3.75rem);
+      font-weight: 650;
+      line-height: 1.02;
+      letter-spacing: -0.045em;
+      color: var(--color-text);
+      margin-bottom: var(--sp-5);
+    }
+
+    .hero-headline em {
+      font-style: italic;
+      color: var(--color-accent);
+    }
+
+    .hero-sub {
+      font-size: 1.0625rem;
+      line-height: 1.6;
+      color: var(--color-text-muted);
+      max-width: 480px;
+      margin-bottom: var(--sp-8);
+    }
+
+    /* Subscribe form */
+    .subscribe-form {
+      display: flex;
+      gap: var(--sp-2);
+      max-width: 460px;
+      margin-bottom: var(--sp-4);
+    }
+
+    .subscribe-form-field {
+      flex: 1;
+      position: relative;
+    }
+
+    .subscribe-input {
+      width: 100%;
+      padding: var(--sp-3) var(--sp-4);
+      border: 1.5px solid var(--color-border-strong);
+      border-radius: var(--radius-md);
+      font-size: 0.9375rem;
+      color: var(--color-text);
+      background: var(--color-surface);
+      transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+    }
+    .subscribe-input::placeholder { color: var(--color-text-subtle); }
+    .subscribe-input:focus {
+      outline: none;
+      border-color: var(--color-focus);
+      box-shadow: 0 0 0 3px rgba(36,87,197,0.22);
+    }
+    .subscribe-input.error {
+      border-color: var(--color-danger);
+      box-shadow: 0 0 0 3px rgba(180,35,24,0.15);
+    }
+
+    .subscribe-input-error {
+      font-size: 0.75rem;
+      color: var(--color-danger);
+      margin-top: var(--sp-1);
+      display: none;
+    }
+    .subscribe-input-error.visible { display: block; }
+
+    .subscribe-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-2);
+      padding: var(--sp-3) var(--sp-5);
+      background: var(--color-accent);
+      color: #fff;
+      border-radius: var(--radius-md);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background var(--motion-fast), opacity var(--motion-fast);
+    }
+    .subscribe-btn:hover { background: var(--color-accent-hover); }
+    .subscribe-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .subscribe-btn.loading { opacity: 0.8; cursor: wait; }
+
+    .subscribe-success {
+      display: none;
+      align-items: center;
+      gap: var(--sp-3);
+      padding: var(--sp-3) var(--sp-4);
+      background: var(--color-success-bg);
+      border: 1px solid rgba(24,121,78,0.2);
+      border-radius: var(--radius-md);
+      max-width: 460px;
+    }
+    .subscribe-success.visible { display: flex; }
+    .subscribe-success-text { font-size: 0.9375rem; font-weight: 500; color: var(--color-success); }
+
+    .hero-proof {
+      font-size: 0.8125rem;
+      color: var(--color-text-subtle);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+    }
+    .hero-proof strong { color: var(--color-text-muted); font-weight: 600; }
+
+    /* Hero issue preview card */
+    .issue-preview {
+      background: var(--color-surface-inv);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-6);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .issue-preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--sp-5);
+      padding-bottom: var(--sp-4);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .issue-preview-meta {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .issue-preview-badge {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      color: var(--color-accent);
+      background: rgba(185,74,47,0.15);
+      border-radius: var(--radius-full);
+      padding: 2px 8px;
+    }
+
+    .issue-preview-headline {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 620;
+      line-height: 1.2;
+      letter-spacing: -0.025em;
+      color: #FFFFFF;
+      margin-bottom: var(--sp-3);
+    }
+
+    .issue-preview-body {
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: var(--sp-5);
+    }
+
+    .issue-preview-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: var(--sp-4) 0;
+    }
+
+    .issue-preview-toc-label {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: var(--sp-3);
+    }
+
+    .issue-preview-toc {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-2);
+    }
+
+    .issue-preview-toc-item {
+      display: flex;
+      align-items: baseline;
+      gap: var(--sp-3);
+      font-size: 0.8125rem;
+      color: rgba(255,255,255,0.65);
+    }
+
+    .toc-num {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      color: rgba(255,255,255,0.25);
+      flex-shrink: 0;
+      width: 16px;
+    }
+
+    /* ============================================================
+       STATS BAR
+    ============================================================ */
+    .stats-bar {
+      background: var(--color-bg-subtle);
+      border-bottom: 1px solid var(--color-border);
+      padding: var(--sp-5) 0;
+    }
+
+    .stats-bar-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 var(--sp-6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--sp-2) var(--sp-10);
+      border-right: 1px solid var(--color-border);
+    }
+    .stat-item:last-child { border-right: none; }
+
+    .stat-val {
+      font-family: var(--font-mono);
+      font-size: 1.375rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      color: var(--color-text);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-top: var(--sp-1);
+      white-space: nowrap;
+    }
+
+    /* ============================================================
+       SECTION SCAFFOLDING
+    ============================================================ */
+    .section {
+      padding: var(--sp-20) 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-text-subtle);
+      margin-bottom: var(--sp-4);
+    }
+
+    .section-label::before {
+      content: '—  ';
+      color: var(--color-accent);
+    }
+
+    .section-heading {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 3vw, 2.5rem);
+      font-weight: 650;
+      letter-spacing: -0.04em;
+      line-height: 1.06;
+      color: var(--color-text);
+    }
+
+    .section-heading em {
+      font-style: italic;
+      color: var(--color-accent);
+    }
+
+    .section-sub {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--color-text-muted);
+      margin-top: var(--sp-3);
+      max-width: 540px;
+    }
+
+    /* ============================================================
+       CONTENT AREAS / TOPICS
+    ============================================================ */
+    .topics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      margin-top: var(--sp-10);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .topic-item {
+      padding: var(--sp-8);
+      border-right: 1px solid var(--color-border);
+      border-bottom: 1px solid var(--color-border);
+      transition: background var(--motion-fast);
+    }
+    .topic-item:hover { background: var(--color-surface); }
+    .topic-item:nth-child(2n) { border-right: none; }
+    .topic-item:nth-child(3),
+    .topic-item:nth-child(4) { border-bottom: none; }
+
+    .topic-index {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      color: var(--color-accent);
+      letter-spacing: 0.06em;
+      margin-bottom: var(--sp-4);
+    }
+
+    .topic-name {
+      font-family: var(--font-display);
+      font-size: 1.375rem;
+      font-weight: 620;
+      letter-spacing: -0.03em;
+      color: var(--color-text);
+      margin-bottom: var(--sp-3);
+      line-height: 1.2;
+    }
+
+    .topic-desc {
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: var(--color-text-muted);
+    }
+
+    .topic-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sp-2);
+      margin-top: var(--sp-4);
+    }
+
+    .topic-tag {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      padding: 2px 8px;
+      border-radius: var(--radius-xs);
+      background: var(--color-bg-subtle);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+    }
+
+    /* ============================================================
+       SAMPLE ISSUE
+    ============================================================ */
+    .sample-section {
+      background: var(--color-surface-inv);
+      padding: var(--sp-20) 0;
+    }
+
+    .sample-label {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: var(--sp-4);
+    }
+    .sample-label::before { content: '—  '; color: var(--color-accent); }
+
+    .sample-heading {
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 2.5vw, 2rem);
+      font-weight: 650;
+      letter-spacing: -0.04em;
+      color: #fff;
+      margin-bottom: var(--sp-10);
+    }
+
+    .sample-issue-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .sample-issue-topbar {
+      background: rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: var(--sp-4) var(--sp-6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sample-issue-title-row {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-4);
+    }
+
+    .sample-issue-logo {
+      font-family: var(--font-display);
+      font-weight: 650;
+      font-size: 0.9375rem;
+      letter-spacing: -0.025em;
+      color: #fff;
+    }
+
+    .sample-sep {
+      width: 1px;
+      height: 14px;
+      background: rgba(255,255,255,0.15);
+    }
+
+    .sample-issue-num {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .sample-issue-date {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .sample-issue-body {
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 0;
+    }
+
+    .sample-issue-main {
+      padding: var(--sp-8);
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sample-issue-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: var(--sp-3);
+    }
+
+    .sample-issue-h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.25rem, 2vw, 1.75rem);
+      font-weight: 650;
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+      color: #fff;
+      margin-bottom: var(--sp-4);
+    }
+
+    .sample-issue-text {
+      font-size: 0.9375rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: var(--sp-5);
+    }
+
+    .sample-code-block {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius-sm);
+      padding: var(--sp-4);
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.75);
+      overflow-x: auto;
+    }
+
+    .code-comment { color: rgba(255,255,255,0.3); }
+    .code-keyword { color: #B94A2F; }
+    .code-string  { color: #89d09b; }
+    .code-fn      { color: #79b8f7; }
+
+    .sample-issue-sidebar {
+      padding: var(--sp-6);
+    }
+
+    .sample-sidebar-label {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      margin-bottom: var(--sp-4);
+      padding-bottom: var(--sp-3);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sample-sidebar-item {
+      padding: var(--sp-3) 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .sample-sidebar-item:last-child { border-bottom: none; }
+
+    .sample-sidebar-category {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      color: var(--color-accent);
+      margin-bottom: 4px;
+    }
+
+    .sample-sidebar-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.4;
+    }
+
+    /* ============================================================
+       TESTIMONIALS
+    ============================================================ */
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-6);
+      margin-top: var(--sp-10);
+    }
+
+    .testimonial-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--sp-6);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .testimonial-quote {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.0625rem;
+      line-height: 1.55;
+      letter-spacing: -0.01em;
+      color: var(--color-text);
+      margin-bottom: var(--sp-5);
+    }
+
+    .testimonial-quote::before { content: '\201C'; color: var(--color-accent); }
+    .testimonial-quote::after  { content: '\201D'; color: var(--color-accent); }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      padding-top: var(--sp-4);
+      border-top: 1px solid var(--color-border);
+    }
+
+    .author-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .author-name {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-text);
+      line-height: 1.2;
+    }
+
+    .author-role {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+
+    /* ============================================================
+       RECENT ISSUES
+    ============================================================ */
+    .issues-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: var(--sp-6);
+      padding-bottom: var(--sp-4);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .issues-header-left { }
+
+    .issues-view-all {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-accent);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-1);
+      transition: gap var(--motion-fast);
+    }
+    .issues-view-all:hover { gap: var(--sp-2); }
+
+    .issues-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .issue-row {
+      display: grid;
+      grid-template-columns: 80px 120px 1fr auto;
+      align-items: baseline;
+      gap: var(--sp-6);
+      padding: var(--sp-4) 0;
+      border-bottom: 1px solid var(--color-border);
+      transition: background var(--motion-fast);
+      text-decoration: none;
+      border-radius: var(--radius-xs);
+    }
+    .issue-row:last-child { border-bottom: none; }
+    .issue-row:hover { background: var(--color-surface); }
+    .issue-row:hover .issue-row-title { color: var(--color-accent); }
+
+    .issue-num {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--color-text-subtle);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .issue-date {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-text-subtle);
+      white-space: nowrap;
+    }
+
+    .issue-row-title {
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--color-text);
+      transition: color var(--motion-fast);
+    }
+
+    .issue-row-tags {
+      display: flex;
+      gap: var(--sp-1);
+    }
+
+    .issue-tag {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      padding: 1px 7px;
+      border-radius: var(--radius-xs);
+      background: var(--color-bg-subtle);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+      white-space: nowrap;
+    }
+
+    /* ============================================================
+       ABOUT
+    ============================================================ */
+    .about-inner {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: var(--sp-12);
+      align-items: start;
+    }
+
+    .about-photo {
+      width: 160px;
+      height: 160px;
+      border-radius: var(--radius-md);
+      background: var(--color-bg-subtle);
+      border: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .about-photo-initials {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      font-weight: 650;
+      color: var(--color-border-strong);
+      letter-spacing: -0.04em;
+    }
+
+    .about-name {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 650;
+      letter-spacing: -0.035em;
+      color: var(--color-text);
+      margin-bottom: var(--sp-1);
+    }
+
+    .about-title {
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      color: var(--color-accent);
+      margin-bottom: var(--sp-5);
+    }
+
+    .about-bio {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--color-text-muted);
+      margin-bottom: var(--sp-5);
+    }
+
+    .about-links {
+      display: flex;
+      gap: var(--sp-3);
+    }
+
+    .about-link {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      transition: color var(--motion-fast);
+    }
+    .about-link:hover { color: var(--color-text); }
+
+    /* ============================================================
+       FINAL CTA
+    ============================================================ */
+    .cta-section {
+      background: var(--color-bg-subtle);
+      padding: var(--sp-20) 0;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .cta-inner {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 0 var(--sp-6);
+      text-align: center;
+    }
+
+    .cta-heading {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 3vw, 2.75rem);
+      font-weight: 650;
+      letter-spacing: -0.04em;
+      line-height: 1.06;
+      color: var(--color-text);
+      margin-bottom: var(--sp-4);
+    }
+    .cta-heading em { font-style: italic; color: var(--color-accent); }
+
+    .cta-sub {
+      font-size: 1rem;
+      color: var(--color-text-muted);
+      margin-bottom: var(--sp-8);
+    }
+
+    .cta-form {
+      display: flex;
+      gap: var(--sp-2);
+      max-width: 420px;
+      margin: 0 auto var(--sp-4);
+    }
+
+    .cta-fine {
+      font-size: 0.8125rem;
+      color: var(--color-text-subtle);
+    }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    .footer {
+      background: var(--color-surface-inv);
+      padding: var(--sp-8) 0;
+    }
+
+    .footer-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 var(--sp-6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-4);
+      flex-wrap: wrap;
+    }
+
+    .footer-wordmark {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: var(--sp-5);
+    }
+
+    .footer-link {
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.38);
+      transition: color var(--motion-fast);
+    }
+    .footer-link:hover { color: rgba(255,255,255,0.7); }
+
+    .footer-copy {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.25);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 960px) {
+      .hero-inner { grid-template-columns: 1fr; gap: var(--sp-10); }
+      .issue-preview { display: none; }
+      .testimonials-grid { grid-template-columns: 1fr 1fr; }
+      .sample-issue-body { grid-template-columns: 1fr; }
+      .sample-issue-sidebar { border-top: 1px solid rgba(255,255,255,0.08); }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-hamburger { display: flex; }
+      .topics-grid { grid-template-columns: 1fr; }
+      .topic-item:nth-child(2n) { border-right: none; }
+      .topic-item:nth-child(3) { border-bottom: 1px solid var(--color-border); }
+      .topic-item:nth-child(4) { border-bottom: none; }
+      .issue-row { grid-template-columns: 1fr; gap: var(--sp-2); padding: var(--sp-4) 0; }
+      .issue-num,
+      .issue-date { display: none; }
+      .issue-row-tags { display: none; }
+      .about-inner { grid-template-columns: 1fr; }
+      .about-photo { width: 80px; height: 80px; }
+      .about-photo-initials { font-size: 1.5rem; }
+      .cta-form { flex-direction: column; }
+      .stats-bar-inner { gap: 0; }
+      .stat-item { padding: var(--sp-3) var(--sp-6); }
+    }
+
+    @media (max-width: 560px) {
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .hero { padding: var(--sp-12) 0 var(--sp-10); }
+      .section { padding: var(--sp-12) 0; }
+      .subscribe-form { flex-direction: column; }
+    }
+
+    /* ============================================================
+       REDUCED MOTION
+    ============================================================ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== NAV ===== -->
+  <header class="nav" role="banner">
+    <div class="nav-inner">
+      <a href="#" class="nav-wordmark" aria-label="The Deploy — home">
+        <span class="wordmark-dot" aria-hidden="true"></span>
+        The Deploy
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#archive" class="nav-link">Archive</a>
+        <a href="#about"   class="nav-link">About</a>
+        <a href="#pricing" class="nav-link">Paid tier</a>
+      </nav>
+      <a href="#subscribe" class="nav-cta">
+        Subscribe free
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+          <line x1="2" y1="6.5" x2="11" y2="6.5"/>
+          <polyline points="7,2.5 11,6.5 7,10.5"/>
+        </svg>
+      </a>
+      <button class="nav-hamburger" id="navHamburger" aria-label="Open menu" aria-expanded="false">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="2" y1="4.5" x2="16" y2="4.5"/>
+          <line x1="2" y1="9"   x2="16" y2="9"/>
+          <line x1="2" y1="13.5" x2="16" y2="13.5"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero" aria-labelledby="hero-headline">
+    <div class="hero-inner">
+
+      <div class="hero-content">
+        <div class="hero-eyebrow" aria-hidden="true">Free &nbsp;·&nbsp; Weekly &nbsp;·&nbsp; Since 2021</div>
+        <h1 class="hero-headline" id="hero-headline">
+          Engineering decisions<br><em>worth understanding.</em>
+        </h1>
+        <p class="hero-sub">
+          Every Tuesday, The Deploy breaks down the system design, tooling choices,
+          and architectural decisions behind software that ships and scales.
+          Written for engineers who want the reasoning, not just the answer.
+        </p>
+
+        <form class="subscribe-form" id="heroForm" novalidate aria-label="Subscribe to The Deploy">
+          <div class="subscribe-form-field">
+            <label for="heroEmail" class="sr-only">Work email address</label>
+            <input
+              class="subscribe-input"
+              type="email"
+              id="heroEmail"
+              name="email"
+              placeholder="your@company.com"
+              autocomplete="email"
+              required>
+            <div class="subscribe-input-error" id="heroEmailError" role="alert">
+              Please enter a valid email address.
+            </div>
+          </div>
+          <button class="subscribe-btn" type="submit" id="heroSubmitBtn">
+            Subscribe free
+          </button>
+        </form>
+
+        <div class="subscribe-success" id="heroSuccess" role="status" aria-live="polite">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#18794E" stroke-width="1.75" aria-hidden="true">
+            <circle cx="9" cy="9" r="7.5"/>
+            <polyline points="5.5,9 7.5,11 12.5,6.5"/>
+          </svg>
+          <span class="subscribe-success-text">You're in. Check your inbox to confirm.</span>
+        </div>
+
+        <p class="hero-proof" aria-label="18,400 engineers subscribed">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <circle cx="5" cy="5" r="2.5"/>
+            <circle cx="9" cy="5" r="2.5"/>
+            <path d="M1 12c0-2.21 1.79-4 4-4"/>
+            <path d="M8 12c0-2.21 1.79-4 4-4"/>
+          </svg>
+          <strong>18,400+</strong> engineers at Stripe, Vercel, Linear, Shopify, and Cloudflare
+        </p>
+      </div>
+
+      <!-- Issue preview card (desktop only) -->
+      <div class="issue-preview" aria-hidden="true">
+        <div class="issue-preview-header">
+          <div class="issue-preview-meta">The Deploy &nbsp;·&nbsp; Issue #187</div>
+          <div class="issue-preview-badge">MAY 13, 2026</div>
+        </div>
+        <div class="issue-preview-headline">
+          Why Stripe Still Writes Their Own HTTP Client
+        </div>
+        <div class="issue-preview-body">
+          Every major cloud vendor offers an HTTP client. Stripe uses none of them.
+          This week we dig into the four specific failure modes that drove that decision —
+          and what it means for your own dependency choices.
+        </div>
+        <div class="issue-preview-divider"></div>
+        <div class="issue-preview-toc-label">Also in this issue</div>
+        <div class="issue-preview-toc">
+          <div class="issue-preview-toc-item">
+            <span class="toc-num">01</span>
+            <span>Vercel's Edge Runtime — a year later</span>
+          </div>
+          <div class="issue-preview-toc-item">
+            <span class="toc-num">02</span>
+            <span>The case against blue-green deploys at scale</span>
+          </div>
+          <div class="issue-preview-toc-item">
+            <span class="toc-num">03</span>
+            <span>Five job postings worth reading this week</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== STATS BAR ===== -->
+  <div class="stats-bar" aria-label="Newsletter statistics">
+    <div class="stats-bar-inner">
+      <div class="stat-item">
+        <div class="stat-val">18,400+</div>
+        <div class="stat-label">Engineers subscribed</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">62%</div>
+        <div class="stat-label">Average open rate</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">187</div>
+        <div class="stat-label">Issues published</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">Every Tue</div>
+        <div class="stat-label">Delivery schedule</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val">$0</div>
+        <div class="stat-label">Free tier, always</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOPICS ===== -->
+  <section class="section container" aria-labelledby="topics-heading">
+    <div class="section-label" aria-hidden="true">What you'll find</div>
+    <h2 class="section-heading" id="topics-heading">
+      Four areas.<br>
+      Covered <em>deeply.</em>
+    </h2>
+    <p class="section-sub">
+      The Deploy does not skim. Each section goes where the reasoning lives —
+      into the tradeoffs, the constraints, and the history that shaped the decision.
+    </p>
+
+    <div class="topics-grid">
+
+      <div class="topic-item">
+        <div class="topic-index">01 — System Design</div>
+        <div class="topic-name">Architecture that holds under load</div>
+        <div class="topic-desc">
+          Database sharding decisions, consensus algorithms, event sourcing tradeoffs,
+          cache invalidation strategies, and what happens when your abstractions meet real traffic.
+        </div>
+        <div class="topic-tags">
+          <span class="topic-tag">distributed</span>
+          <span class="topic-tag">databases</span>
+          <span class="topic-tag">scalability</span>
+        </div>
+      </div>
+
+      <div class="topic-item">
+        <div class="topic-index">02 — Tooling</div>
+        <div class="topic-name">Developer infrastructure worth understanding</div>
+        <div class="topic-desc">
+          CI/CD pipeline decisions, observability stacks, build system choices,
+          and the real reasons engineering teams switch (or don't switch) from what they have.
+        </div>
+        <div class="topic-tags">
+          <span class="topic-tag">CI/CD</span>
+          <span class="topic-tag">observability</span>
+          <span class="topic-tag">DX</span>
+        </div>
+      </div>
+
+      <div class="topic-item">
+        <div class="topic-index">03 — Engineering Culture</div>
+        <div class="topic-name">How high-output teams are actually built</div>
+        <div class="topic-desc">
+          Incident post-mortems, code review culture, on-call rotation design,
+          technical leadership transitions, and how org structure shapes what ships.
+        </div>
+        <div class="topic-tags">
+          <span class="topic-tag">process</span>
+          <span class="topic-tag">teams</span>
+          <span class="topic-tag">leadership</span>
+        </div>
+      </div>
+
+      <div class="topic-item">
+        <div class="topic-index">04 — Case Studies</div>
+        <div class="topic-name">Real decisions from teams you recognize</div>
+        <div class="topic-desc">
+          Annotated teardowns of publicly documented engineering decisions —
+          from Figma's multiplayer layer to Linear's sync engine to Shopify's storefront rewrite.
+        </div>
+        <div class="topic-tags">
+          <span class="topic-tag">teardowns</span>
+          <span class="topic-tag">real-world</span>
+          <span class="topic-tag">case study</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== SAMPLE ISSUE ===== -->
+  <section class="sample-section" aria-labelledby="sample-heading">
+    <div class="container">
+      <div class="sample-label" aria-hidden="true">A real issue</div>
+      <h2 class="sample-heading" id="sample-heading">See what lands in your inbox</h2>
+
+      <div class="sample-issue-card">
+        <div class="sample-issue-topbar">
+          <div class="sample-issue-title-row">
+            <span class="sample-issue-logo">The Deploy</span>
+            <span class="sample-sep" aria-hidden="true"></span>
+            <span class="sample-issue-num">Issue #187</span>
+          </div>
+          <span class="sample-issue-date">Tuesday, May 13, 2026</span>
+        </div>
+
+        <div class="sample-issue-body">
+          <div class="sample-issue-main">
+            <div class="sample-issue-kicker">Deep Dive — Tooling</div>
+            <h3 class="sample-issue-h1">
+              Why Stripe Still Writes Their Own HTTP Client
+            </h3>
+            <p class="sample-issue-text">
+              When Stripe published their internal engineering principles in 2023, one line
+              stood out: "We prefer writing small, focused libraries over depending on large,
+              general-purpose ones." Their HTTP client is the clearest expression of that principle.
+            </p>
+            <p class="sample-issue-text">
+              The client they use today was written in 2017. It handles exactly four things:
+              connection pooling, retry logic with jitter, request signing, and structured
+              error deserialization. It does not handle cookies, redirects, or multipart forms.
+              It does not need to.
+            </p>
+            <pre class="sample-code-block" aria-label="Simplified example of Stripe's retry approach"><code><span class="code-comment"># Simplified representation of Stripe's retry approach</span>
+<span class="code-keyword">def</span> <span class="code-fn">request_with_retry</span>(method, url, body, max_retries=<span class="code-string">3</span>):
+    <span class="code-keyword">for</span> attempt <span class="code-keyword">in</span> range(max_retries):
+        resp = client.request(method, url, body)
+        <span class="code-keyword">if</span> resp.retryable <span class="code-keyword">and</span> attempt &lt; max_retries - <span class="code-string">1</span>:
+            sleep(backoff(attempt))  <span class="code-comment"># jitter applied</span>
+            <span class="code-keyword">continue</span>
+        <span class="code-keyword">return</span> resp</code></pre>
+          </div>
+
+          <div class="sample-issue-sidebar">
+            <div class="sample-sidebar-label">Also this week</div>
+
+            <div class="sample-sidebar-item">
+              <div class="sample-sidebar-category">Engineering Culture</div>
+              <div class="sample-sidebar-title">Vercel's on-call rotation after reaching 1M deploys/day</div>
+            </div>
+
+            <div class="sample-sidebar-item">
+              <div class="sample-sidebar-category">System Design</div>
+              <div class="sample-sidebar-title">The case against blue-green deploys at Shopify's scale</div>
+            </div>
+
+            <div class="sample-sidebar-item">
+              <div class="sample-sidebar-category">Tooling</div>
+              <div class="sample-sidebar-title">Why Linear migrated from Electron to a web-native shell</div>
+            </div>
+
+            <div class="sample-sidebar-item">
+              <div class="sample-sidebar-category">Jobs worth reading</div>
+              <div class="sample-sidebar-title">Five staff+ postings with unusually honest job descriptions</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TESTIMONIALS ===== -->
+  <section class="section container" aria-labelledby="testimonials-heading">
+    <div class="section-label" aria-hidden="true">Reader reactions</div>
+    <h2 class="section-heading" id="testimonials-heading">
+      From engineers<br>who already read it
+    </h2>
+
+    <div class="testimonials-grid">
+
+      <div class="testimonial-card">
+        <p class="testimonial-quote">
+          The only newsletter I actually open the same day it arrives.
+          The case studies are genuinely useful — not surface-level, not recycled blog content.
+        </p>
+        <div class="testimonial-author">
+          <div class="author-avatar" style="background:#B07B13;" aria-hidden="true">SK</div>
+          <div>
+            <div class="author-name">Sara K.</div>
+            <div class="author-role">Staff Engineer, Cloudflare</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card">
+        <p class="testimonial-quote">
+          I forward at least one issue a month to my team. The breakdown on
+          Linear's sync engine changed how we think about our own offline-first architecture.
+        </p>
+        <div class="testimonial-author">
+          <div class="author-avatar" style="background:#276EF1;" aria-hidden="true">MR</div>
+          <div>
+            <div class="author-name">Marcus R.</div>
+            <div class="author-role">Engineering Manager, Shopify</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card">
+        <p class="testimonial-quote">
+          The tooling coverage is the best I've seen anywhere. No sponsored
+          takes, no vendor fluff — just clear analysis of why a team made a decision
+          and what it cost them.
+        </p>
+        <div class="testimonial-author">
+          <div class="author-avatar" style="background:#18794E;" aria-hidden="true">PL</div>
+          <div>
+            <div class="author-name">Priya L.</div>
+            <div class="author-role">Principal Engineer, Vercel</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== RECENT ISSUES ===== -->
+  <section class="section container" id="archive" aria-labelledby="archive-heading">
+    <div class="issues-header">
+      <div>
+        <div class="section-label" aria-hidden="true">Archive</div>
+        <h2 class="section-heading" id="archive-heading">Recent issues</h2>
+      </div>
+      <a href="#" class="issues-view-all" aria-label="View all 187 issues">
+        View all 187
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+          <line x1="2" y1="6.5" x2="11" y2="6.5"/>
+          <polyline points="7,2.5 11,6.5 7,10.5"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="issues-list" role="list">
+
+      <a href="#" class="issue-row" role="listitem" aria-label="Issue 187, May 13 2026: Why Stripe Still Writes Their Own HTTP Client">
+        <span class="issue-num">#187</span>
+        <span class="issue-date">May 13, 2026</span>
+        <span class="issue-row-title">Why Stripe Still Writes Their Own HTTP Client</span>
+        <div class="issue-row-tags">
+          <span class="issue-tag">tooling</span>
+        </div>
+      </a>
+
+      <a href="#" class="issue-row" role="listitem" aria-label="Issue 186, May 6 2026: The Cost of Premature Abstraction in Distributed Systems">
+        <span class="issue-num">#186</span>
+        <span class="issue-date">May 6, 2026</span>
+        <span class="issue-row-title">The Cost of Premature Abstraction in Distributed Systems</span>
+        <div class="issue-row-tags">
+          <span class="issue-tag">system design</span>
+        </div>
+      </a>
+
+      <a href="#" class="issue-row" role="listitem" aria-label="Issue 185, Apr 29 2026: How GitLab Moved from Patroni to Distributed Postgres">
+        <span class="issue-num">#185</span>
+        <span class="issue-date">Apr 29, 2026</span>
+        <span class="issue-row-title">How GitLab Moved from Patroni to Distributed Postgres</span>
+        <div class="issue-row-tags">
+          <span class="issue-tag">databases</span>
+          <span class="issue-tag">case study</span>
+        </div>
+      </a>
+
+      <a href="#" class="issue-row" role="listitem" aria-label="Issue 184, Apr 22 2026: Linear's Tech Stack in 2026 — Annotated">
+        <span class="issue-num">#184</span>
+        <span class="issue-date">Apr 22, 2026</span>
+        <span class="issue-row-title">Linear's Tech Stack in 2026 — Annotated</span>
+        <div class="issue-row-tags">
+          <span class="issue-tag">case study</span>
+          <span class="issue-tag">tooling</span>
+        </div>
+      </a>
+
+      <a href="#" class="issue-row" role="listitem" aria-label="Issue 183, Apr 15 2026: Engineering the Figma Real-Time Collaboration Layer">
+        <span class="issue-num">#183</span>
+        <span class="issue-date">Apr 15, 2026</span>
+        <span class="issue-row-title">Engineering the Figma Real-Time Collaboration Layer</span>
+        <div class="issue-row-tags">
+          <span class="issue-tag">system design</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ===== ABOUT ===== -->
+  <section class="section container" id="about" aria-labelledby="about-heading">
+    <div class="section-label" aria-hidden="true">The author</div>
+    <div class="about-inner">
+      <div class="about-photo" aria-hidden="true">
+        <span class="about-photo-initials">JT</span>
+      </div>
+      <div>
+        <h2 class="about-name" id="about-heading">James Thornton</h2>
+        <div class="about-title">Staff Engineer · Independent · San Francisco</div>
+        <p class="about-bio">
+          I've spent 14 years building distributed systems at companies ranging from
+          50-person startups to orgs with 2,000 engineers. I wrote The Deploy because
+          I couldn't find a newsletter that treated readers as engineers capable of
+          understanding the real tradeoffs — not just the press release version.
+        </p>
+        <p class="about-bio">
+          I do not accept sponsored content. The paid tier ($9/month) supports
+          the research time for each issue and gives you access to the full archive,
+          annotated issue PDFs, and a private Slack for reader discussion.
+        </p>
+        <div class="about-links">
+          <a href="#" class="about-link">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path d="M1 1h4l2.5 5.5-2.5 2a11 11 0 005 5l2-2.5L13 14v4"/>
+            </svg>
+            Twitter / X
+          </a>
+          <a href="#" class="about-link">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <circle cx="7.5" cy="7.5" r="6.5"/>
+              <path d="M7.5 1C7.5 1 5 5 5 7.5s2.5 6.5 2.5 6.5"/>
+              <path d="M1 7.5h13"/>
+            </svg>
+            jthornton.dev
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FINAL CTA ===== -->
+  <section class="cta-section" id="subscribe" aria-labelledby="cta-heading">
+    <div class="cta-inner">
+      <h2 class="cta-heading" id="cta-heading">
+        Join 18,400 engineers.<br>
+        <em>It's free.</em>
+      </h2>
+      <p class="cta-sub">
+        Every Tuesday. No noise, no filler, no sponsored takes.
+        Unsubscribe in one click — no questions asked.
+      </p>
+
+      <form class="cta-form" id="ctaForm" novalidate aria-label="Subscribe form">
+        <div style="flex:1;position:relative;">
+          <label for="ctaEmail" class="sr-only">Work email address</label>
+          <input
+            class="subscribe-input"
+            type="email"
+            id="ctaEmail"
+            name="email"
+            placeholder="your@company.com"
+            autocomplete="email"
+            required>
+          <div class="subscribe-input-error" id="ctaEmailError" role="alert">
+            Please enter a valid email address.
+          </div>
+        </div>
+        <button class="subscribe-btn" type="submit" id="ctaSubmitBtn">
+          Subscribe free
+        </button>
+      </form>
+
+      <div class="subscribe-success" id="ctaSuccess" role="status" aria-live="polite" style="justify-content:center;">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#18794E" stroke-width="1.75" aria-hidden="true">
+          <circle cx="9" cy="9" r="7.5"/>
+          <polyline points="5.5,9 7.5,11 12.5,6.5"/>
+        </svg>
+        <span class="subscribe-success-text">You're in. Check your inbox to confirm.</span>
+      </div>
+
+      <p class="cta-fine">No spam. Unsubscribe anytime. &nbsp;·&nbsp; Paid tier available at $9/month.</p>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-inner">
+      <span class="footer-wordmark">The Deploy</span>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="#" class="footer-link">Archive</a>
+        <a href="#" class="footer-link">About</a>
+        <a href="#" class="footer-link">Paid tier</a>
+        <a href="#" class="footer-link">Privacy</a>
+        <a href="#" class="footer-link">Unsubscribe</a>
+      </nav>
+      <span class="footer-copy">&copy; 2026 The Deploy</span>
+    </div>
+  </footer>
+
+  <!-- visually hidden label utility -->
+  <style>
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+
+<script>
+  /* ============================================================
+     Email validation helper
+  ============================================================ */
+  function isValidEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+  }
+
+  /* ============================================================
+     Subscribe form handler (shared for hero + CTA forms)
+  ============================================================ */
+  function wireForm(formId, inputId, errorId, btnId, successId) {
+    const form    = document.getElementById(formId);
+    const input   = document.getElementById(inputId);
+    const error   = document.getElementById(errorId);
+    const btn     = document.getElementById(btnId);
+    const success = document.getElementById(successId);
+
+    if (!form) return;
+
+    function showError(msg) {
+      input.classList.add('error');
+      error.textContent  = msg;
+      error.classList.add('visible');
+      input.setAttribute('aria-describedby', errorId);
+      input.setAttribute('aria-invalid', 'true');
+    }
+
+    function clearError() {
+      input.classList.remove('error');
+      error.classList.remove('visible');
+      input.removeAttribute('aria-describedby');
+      input.setAttribute('aria-invalid', 'false');
+    }
+
+    input.addEventListener('input', clearError);
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      clearError();
+
+      const val = input.value.trim();
+
+      if (!val) {
+        showError('Email address is required.');
+        input.focus();
+        return;
+      }
+
+      if (!isValidEmail(val)) {
+        showError('Please enter a valid email address.');
+        input.focus();
+        return;
+      }
+
+      // Simulate async submission
+      btn.classList.add('loading');
+      btn.disabled = true;
+      btn.textContent = 'Subscribing…';
+
+      setTimeout(function() {
+        form.style.display = 'none';
+        success.classList.add('visible');
+      }, 1000);
+    });
+  }
+
+  wireForm('heroForm', 'heroEmail', 'heroEmailError', 'heroSubmitBtn', 'heroSuccess');
+  wireForm('ctaForm',  'ctaEmail',  'ctaEmailError',  'ctaSubmitBtn',  'ctaSuccess');
+
+  /* ============================================================
+     Mobile nav placeholder (hamburger)
+  ============================================================ */
+  document.getElementById('navHamburger').addEventListener('click', function() {
+    const expanded = this.getAttribute('aria-expanded') === 'true';
+    this.setAttribute('aria-expanded', String(!expanded));
+  });
+</script>
+
+</body>
+</html>

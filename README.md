@@ -54,7 +54,9 @@ non-ai-design-skill-pack/
 ├─ references/
 │  └─ UI_REVIEW_CHECKLIST.md
 └─ examples/
-   └─ vibe-coding-platform.html
+   ├─ vibe-coding-platform.html
+   ├─ saas-analytics-dashboard.html
+   └─ developer-newsletter.html
 ```
 
 ## Files
@@ -140,6 +142,8 @@ Ready-made example pages built with this skill pack.
 Use these as a reference for what a finished implementation looks like — design decisions, token usage, component states, and responsive layout all applied in a real context.
 
 - [`vibe-coding-platform.html`](examples/vibe-coding-platform.html) — Course platform landing page. Single-file HTML with the Crafted Engineering design system applied end-to-end.
+- [`saas-analytics-dashboard.html`](examples/saas-analytics-dashboard.html) — SaaS analytics dashboard. Sidebar + workspace layout with KPI cards, revenue trend chart, plan breakdown, and a sortable, filterable customer table.
+- [`developer-newsletter.html`](examples/developer-newsletter.html) — Developer newsletter landing page. Editorial-archival layout with email capture form, sample issue preview, four content-area topics, testimonials, and an issue archive list.
 
 ## Recommended Usage
 
