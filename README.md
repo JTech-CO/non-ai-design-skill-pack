@@ -1,5 +1,7 @@
 # non-ai-design-skill-pack
 
+[한국어](README-KR.md)
+
 A portable design skill pack for AI coding agents.
 
 `non-ai-design-skill-pack` helps AI coding agents create web interfaces that feel intentional, product-specific, accessible, and production-ready instead of generic, over-decorated, or visibly AI-generated.
@@ -49,8 +51,10 @@ non-ai-design-skill-pack/
 ├─ README-KR.md
 ├─ SKILL.md
 ├─ DESIGN.md
-└─ references/
-   └─ UI_REVIEW_CHECKLIST.md
+├─ references/
+│  └─ UI_REVIEW_CHECKLIST.md
+└─ examples/
+   └─ vibe-coding-platform.html
 ```
 
 ## Files
@@ -128,6 +132,14 @@ Use it when asking an AI agent to audit:
 - Performance
 - Anti-AI aesthetic issues
 - Release readiness
+
+### `examples/`
+
+Ready-made example pages built with this skill pack.
+
+Use these as a reference for what a finished implementation looks like — design decisions, token usage, component states, and responsive layout all applied in a real context.
+
+- [`vibe-coding-platform.html`](examples/vibe-coding-platform.html) — Course platform landing page. Single-file HTML with the Crafted Engineering design system applied end-to-end.
 
 ## Recommended Usage
 
