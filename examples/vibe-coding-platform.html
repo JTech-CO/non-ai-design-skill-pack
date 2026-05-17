@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VibeCraft — Vibe Coding Courses</title>
+  <meta name="description" content="Structured courses on AI-assisted development — from your first prompt to a deployed, production-quality product.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,620;9..144,650&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --color-bg:             #F6F3EE;
+      --color-bg-subtle:      #ECE7DE;
+      --color-surface:        #FFFFFF;
+      --color-surface-raised: #FAF8F4;
+      --color-surface-inv:    #111315;
+      --color-border:         #D8D1C7;
+      --color-border-strong:  #B8AEA2;
+      --color-text:           #15171A;
+      --color-text-muted:     #5F676F;
+      --color-text-subtle:    #8A929A;
+      --color-accent:         #B94A2F;
+      --color-accent-hover:   #9E3E28;
+      --color-accent-soft:    #F1D8CF;
+      --color-focus:          #2457C5;
+      --color-success:        #18794E;
+
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-body:    'Inter', ui-sans-serif, system-ui, sans-serif;
+      --font-mono:    'JetBrains Mono', SFMono-Regular, Consolas, monospace;
+
+      --radius-sm:   0.5rem;
+      --radius-md:   0.875rem;
+      --radius-lg:   1.25rem;
+      --radius-full: 999px;
+
+      --shadow-sm: 0 1px 2px rgba(17,19,21,0.06);
+      --shadow-md: 0 12px 30px rgba(17,19,21,0.1);
+
+      --motion-fast:     140ms ease-out;
+      --motion-standard: 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      --motion-slow:     420ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* ── RESET ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; font-family: inherit; border: none; background: none; }
+
+    /* ── FOCUS ── */
+    *:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 3px;
+      border-radius: 3px;
+    }
+
+    /* ── UTILITIES ── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-inline: clamp(1.25rem, 5vw, 3rem);
+    }
+    .label-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      font-family: var(--font-body);
+    }
+    .numeric {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      font-family: var(--font-body);
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--radius-full);
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background var(--motion-fast), transform var(--motion-fast), border-color var(--motion-fast);
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+
+    .btn-primary {
+      background: var(--color-accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--color-accent-hover); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--color-text);
+      border: 1px solid var(--color-border-strong);
+    }
+    .btn-secondary:hover { background: var(--color-bg-subtle); border-color: var(--color-text-muted); }
+
+    .btn-inverse {
+      background: #fff;
+      color: var(--color-text);
+    }
+    .btn-inverse:hover { background: var(--color-bg); }
+
+    .btn-ghost {
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.35); color: #fff; }
+
+    .btn-full { justify-content: center; width: 100%; }
+
+    /* ── NAV ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(246,243,238,0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      gap: 2rem;
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      color: var(--color-text);
+      flex-shrink: 0;
+    }
+    .nav-links {
+      display: none;
+      list-style: none;
+      gap: 0.25rem;
+    }
+    @media (min-width: 768px) { .nav-links { display: flex; } }
+    .nav-links a {
+      display: block;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      border-radius: var(--radius-sm);
+      transition: color var(--motion-fast), background var(--motion-fast);
+    }
+    .nav-links a:hover { color: var(--color-text); background: var(--color-bg-subtle); }
+    .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .nav-signin {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      display: none;
+      transition: color var(--motion-fast);
+    }
+    .nav-signin:hover { color: var(--color-text); }
+    @media (min-width: 640px) { .nav-signin { display: block; } }
+
+    .nav-menu-btn {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      width: 36px;
+      height: 36px;
+      padding: 6px;
+      background: none;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: border-color var(--motion-fast);
+    }
+    .nav-menu-btn:hover { border-color: var(--color-border-strong); }
+    .nav-menu-btn span {
+      display: block;
+      height: 1.5px;
+      background: var(--color-text);
+      border-radius: 1px;
+      transition: transform var(--motion-standard), opacity var(--motion-fast);
+    }
+    .nav-menu-btn[aria-expanded="true"] span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
+    .nav-menu-btn[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+    .nav-menu-btn[aria-expanded="true"] span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
+    @media (min-width: 768px) { .nav-menu-btn { display: none; } }
+
+    .nav-mobile {
+      display: none;
+      border-top: 1px solid var(--color-border);
+      background: var(--color-bg);
+      padding: 1rem 0;
+    }
+    .nav-mobile.is-open { display: block; }
+    .nav-mobile ul { list-style: none; }
+    .nav-mobile ul li a {
+      display: block;
+      padding: 0.625rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      transition: color var(--motion-fast), background var(--motion-fast);
+    }
+    .nav-mobile ul li a:hover { color: var(--color-text); background: var(--color-bg-subtle); }
+
+    /* ── HERO ── */
+    .hero {
+      padding-block: clamp(4rem, 8vw, 7rem);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 3rem;
+      align-items: start;
+    }
+    @media (min-width: 1024px) {
+      .hero-inner {
+        grid-template-columns: 1fr 400px;
+        gap: 4rem;
+        align-items: center;
+      }
+    }
+    .hero-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .hero-rule {
+      width: 2rem;
+      height: 2px;
+      background: var(--color-accent);
+      border-radius: 1px;
+      flex-shrink: 0;
+    }
+    .hero-headline {
+      font-family: var(--font-display);
+      font-size: clamp(2.75rem, 7vw, 5.5rem);
+      font-weight: 650;
+      line-height: 0.94;
+      letter-spacing: -0.055em;
+      color: var(--color-text);
+      margin-bottom: 1.75rem;
+    }
+    .hero-headline em { font-style: normal; color: var(--color-accent); }
+    .hero-subhead {
+      font-size: 1.125rem;
+      line-height: 1.65;
+      color: var(--color-text-muted);
+      max-width: 52ch;
+      margin-bottom: 2.5rem;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 3.5rem;
+    }
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--color-border);
+    }
+    @media (min-width: 640px) {
+      .hero-stats { grid-template-columns: repeat(4, auto); justify-content: start; }
+    }
+    .hero-stat-value {
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      color: var(--color-text);
+      line-height: 1.1;
+      margin-bottom: 0.25rem;
+    }
+    .hero-stat-label { font-size: 0.8125rem; color: var(--color-text-subtle); }
+
+    /* Hero preview card */
+    .hero-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+    .hero-card-head {
+      background: var(--color-surface-inv);
+      padding: 1.5rem;
+    }
+    .hero-card-head-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 0.5rem;
+      font-family: var(--font-body);
+    }
+    .hero-card-head-title {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 650;
+      letter-spacing: -0.025em;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .hero-card-body { padding: 1.5rem; }
+    .hero-card-modules { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .hero-card-module {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+    .hero-card-module-num {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-variant-numeric: tabular-nums;
+      color: var(--color-text-subtle);
+      width: 1.5rem;
+      flex-shrink: 0;
+    }
+    .check-dot {
+      width: 16px;
+      height: 16px;
+      background: var(--color-accent-soft);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .hero-card-more {
+      font-size: 0.8rem;
+      color: var(--color-text-subtle);
+      font-family: var(--font-mono);
+      padding-top: 0.5rem;
+      border-top: 1px dashed var(--color-border);
+    }
+    .hero-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 1.25rem;
+      margin-top: 1.25rem;
+      border-top: 1px solid var(--color-border);
+    }
+    .hero-card-price-label { font-size: 0.75rem; color: var(--color-text-subtle); margin-bottom: 0.125rem; }
+    .hero-card-price {
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      color: var(--color-text);
+    }
+
+    /* ── SECTION BASE ── */
+    .section {
+      padding-block: clamp(4rem, 8vw, 7rem);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .section-header { margin-bottom: clamp(2.5rem, 5vw, 4rem); }
+    .section-header-label { margin-bottom: 0.75rem; }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 3vw, 3rem);
+      font-weight: 620;
+      letter-spacing: -0.035em;
+      line-height: 1.04;
+      color: var(--color-text);
+      margin-bottom: 1rem;
+    }
+    .section-desc {
+      font-size: 1.0625rem;
+      color: var(--color-text-muted);
+      max-width: 60ch;
+    }
+
+    /* ── COURSES ── */
+    .courses-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    @media (min-width: 640px) { .courses-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .course-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: box-shadow var(--motion-standard), transform var(--motion-standard), border-color var(--motion-standard);
+    }
+    .course-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+      border-color: var(--color-border-strong);
+    }
+    .course-card-top {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.625rem;
+      border-radius: var(--radius-full);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      font-family: var(--font-body);
+    }
+    .badge-beginner    { background: #DBEAFE; color: #1E40AF; }
+    .badge-intermediate { background: #FEF3C7; color: #92400E; }
+    .badge-advanced    { background: #FCE7F3; color: #9D174D; }
+    .badge-neutral     { background: var(--color-bg-subtle); color: var(--color-text-muted); }
+    .badge-mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.75rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      background: none;
+      color: var(--color-text-subtle);
+      padding: 0;
+      margin-left: auto;
+    }
+
+    .course-card-main {
+      padding: 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+    }
+    .course-title {
+      font-family: var(--font-display);
+      font-size: 1.3125rem;
+      font-weight: 650;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      color: var(--color-text);
+    }
+    .course-desc {
+      font-size: 0.9375rem;
+      color: var(--color-text-muted);
+      line-height: 1.55;
+    }
+    .course-topics { list-style: none; display: flex; flex-direction: column; gap: 0.375rem; }
+    .course-topic {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+    .course-topic::before {
+      content: "→";
+      color: var(--color-accent);
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      margin-top: 0.15em;
+    }
+    .course-card-footer {
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .course-duration {
+      font-size: 0.8125rem;
+      color: var(--color-text-subtle);
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+    .course-price {
+      font-family: var(--font-mono);
+      font-size: 1.375rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      color: var(--color-text);
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-section {
+      background: var(--color-surface-inv);
+      color: #fff;
+      padding-block: clamp(4rem, 8vw, 7rem);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .how-section .section-title { color: #fff; }
+    .how-section .section-desc  { color: rgba(255,255,255,0.55); }
+    .how-steps {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+      counter-reset: steps;
+    }
+    @media (min-width: 640px)  { .how-steps { grid-template-columns: repeat(2, 1fr); gap: 2rem 3rem; } }
+    @media (min-width: 1024px) { .how-steps { grid-template-columns: repeat(4, 1fr); } }
+    .how-step-num {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .how-step-rule {
+      width: 2rem;
+      height: 2px;
+      background: var(--color-accent);
+      margin-bottom: 1.25rem;
+      border-radius: 1px;
+    }
+    .how-step-title {
+      font-family: var(--font-display);
+      font-size: 1.125rem;
+      font-weight: 650;
+      letter-spacing: -0.025em;
+      color: #fff;
+      margin-bottom: 0.625rem;
+      line-height: 1.2;
+    }
+    .how-step-desc { font-size: 0.9375rem; color: rgba(255,255,255,0.5); line-height: 1.6; }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    @media (min-width: 640px)  { .testimonials-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1024px) { .testimonials-grid { grid-template-columns: repeat(3, 1fr); } }
+
+    .testimonial-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .testimonial-quote {
+      font-size: 0.9375rem;
+      line-height: 1.7;
+      color: var(--color-text);
+      flex: 1;
+    }
+    .testimonial-open-quote {
+      font-family: var(--font-display);
+      font-size: 2.25rem;
+      color: var(--color-accent-soft);
+      line-height: 0;
+      vertical-align: -0.45rem;
+      margin-right: 0.05rem;
+      display: inline-block;
+    }
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--color-border);
+    }
+    .testimonial-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--color-bg-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+      font-family: var(--font-body);
+    }
+    .testimonial-name { font-size: 0.875rem; font-weight: 600; color: var(--color-text); }
+    .testimonial-role { font-size: 0.8rem; color: var(--color-text-subtle); }
+    .testimonial-tag {
+      margin-left: auto;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      background: var(--color-accent-soft);
+      padding: 0.2rem 0.5rem;
+      border-radius: var(--radius-full);
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-family: var(--font-body);
+    }
+
+    /* ── PRICING ── */
+    .pricing-section { background: var(--color-bg-subtle); }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (min-width: 768px)  { .pricing-grid { grid-template-columns: repeat(2, 1fr); align-items: stretch; } }
+    @media (min-width: 1024px) { .pricing-grid { grid-template-columns: repeat(3, 1fr); } }
+
+    .pricing-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      position: relative;
+    }
+    .pricing-card--featured {
+      border-color: var(--color-accent);
+      box-shadow: var(--shadow-md);
+    }
+    .pricing-featured-badge {
+      position: absolute;
+      top: -0.75rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-accent);
+      color: #fff;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.875rem;
+      border-radius: var(--radius-full);
+      white-space: nowrap;
+      font-family: var(--font-body);
+    }
+    .pricing-tier {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      font-family: var(--font-body);
+    }
+    .pricing-price { display: flex; align-items: baseline; gap: 0.25rem; }
+    .pricing-amount {
+      font-family: var(--font-mono);
+      font-size: 2.5rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      color: var(--color-text);
+      line-height: 1;
+    }
+    .pricing-period { font-size: 0.9rem; color: var(--color-text-subtle); }
+    .pricing-note { font-size: 0.8125rem; color: var(--color-text-subtle); }
+    .pricing-note strong { color: var(--color-success); font-weight: 600; }
+    .pricing-desc { font-size: 0.9375rem; color: var(--color-text-muted); line-height: 1.55; }
+    .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 0.625rem; flex: 1; }
+    .pricing-feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.625rem;
+      font-size: 0.9375rem;
+      color: var(--color-text-muted);
+    }
+    .pricing-feature--dim { color: var(--color-text-subtle); }
+    .check-circle {
+      width: 18px;
+      height: 18px;
+      background: #DCFCE7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 0.15em;
+    }
+    .dash-marker {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--color-border-strong);
+      font-size: 0.875rem;
+    }
+
+    /* ── FAQ ── */
+    .faq-list { display: flex; flex-direction: column; max-width: 720px; }
+    .faq-item { border-bottom: 1px solid var(--color-border); }
+    .faq-question {
+      width: 100%;
+      text-align: left;
+      padding: 1.25rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-text);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+      transition: color var(--motion-fast);
+    }
+    .faq-question:hover { color: var(--color-accent); }
+    .faq-icon {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      border: 1px solid var(--color-border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform var(--motion-standard), border-color var(--motion-fast), background var(--motion-fast);
+    }
+    .faq-question[aria-expanded="true"] .faq-icon {
+      transform: rotate(45deg);
+      border-color: var(--color-accent);
+      background: var(--color-accent-soft);
+    }
+    .faq-answer { overflow: hidden; max-height: 0; transition: max-height var(--motion-slow); }
+    .faq-answer.is-open { max-height: 500px; }
+    .faq-answer-inner {
+      padding-bottom: 1.25rem;
+      font-size: 0.9375rem;
+      color: var(--color-text-muted);
+      line-height: 1.7;
+    }
+
+    /* ── CTA BANNER ── */
+    .cta-section {
+      background: var(--color-surface-inv);
+      padding-block: clamp(4rem, 8vw, 7rem);
+      text-align: center;
+    }
+    .cta-label { color: rgba(255,255,255,0.45); margin-bottom: 1.25rem; }
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3.75rem);
+      font-weight: 650;
+      letter-spacing: -0.045em;
+      line-height: 0.98;
+      color: #fff;
+      margin-bottom: 1.5rem;
+    }
+    .cta-title em { font-style: normal; color: var(--color-accent); }
+    .cta-desc { font-size: 1.0625rem; color: rgba(255,255,255,0.55); margin-bottom: 2.5rem; }
+    .cta-actions { display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap; }
+
+    /* ── FOOTER ── */
+    .footer {
+      background: var(--color-bg-subtle);
+      padding-block: 3rem;
+      border-top: 1px solid var(--color-border);
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+    @media (min-width: 768px) { .footer-grid { grid-template-columns: 1fr 1fr 1fr 1fr; gap: 2rem; } }
+    .footer-brand-name {
+      font-family: var(--font-display);
+      font-size: 1.125rem;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      color: var(--color-text);
+      margin-bottom: 0.5rem;
+    }
+    .footer-brand-desc { font-size: 0.875rem; color: var(--color-text-subtle); line-height: 1.6; max-width: 26ch; }
+    .footer-nav-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      margin-bottom: 0.875rem;
+      font-family: var(--font-body);
+    }
+    .footer-nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+    .footer-nav-links a { font-size: 0.9rem; color: var(--color-text-subtle); transition: color var(--motion-fast); }
+    .footer-nav-links a:hover { color: var(--color-text); }
+    .footer-bottom {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .footer-copyright { font-size: 0.8125rem; color: var(--color-text-subtle); }
+    .footer-legal { display: flex; gap: 1.25rem; list-style: none; }
+    .footer-legal a { font-size: 0.8125rem; color: var(--color-text-subtle); transition: color var(--motion-fast); }
+    .footer-legal a:hover { color: var(--color-text); }
+
+    /* ── REDUCED MOTION ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── NAV ── -->
+  <header>
+    <nav class="nav" role="navigation" aria-label="Main navigation">
+      <div class="container nav-inner">
+        <a href="#" class="nav-logo" aria-label="VibeCraft home">VibeCraft</a>
+        <ul class="nav-links" role="list">
+          <li><a href="#courses">Courses</a></li>
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a href="#" class="nav-signin">Sign in</a>
+          <a href="#pricing" class="btn btn-primary">Get started</a>
+          <button class="nav-menu-btn" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open navigation menu">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+      <div class="nav-mobile" id="mobile-nav">
+        <ul>
+          <li><a href="#courses">Courses</a></li>
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#">Sign in</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ── HERO ── -->
+    <section class="hero" aria-labelledby="hero-heading">
+      <div class="container hero-inner">
+
+        <div>
+          <div class="hero-eyebrow">
+            <div class="hero-rule" aria-hidden="true"></div>
+            <span class="label-tag">Vibe Coding Platform</span>
+          </div>
+          <h1 class="hero-headline" id="hero-heading">
+            Build real<br>
+            products.<br>
+            <em>Ship fast.</em>
+          </h1>
+          <p class="hero-subhead">
+            Structured courses on AI-assisted development — from your first prompt to a deployed, production-quality product. No fluff, no filler.
+          </p>
+          <div class="hero-actions">
+            <a href="#courses" class="btn btn-primary">Browse courses →</a>
+            <a href="#how-it-works" class="btn btn-secondary">See how it works</a>
+          </div>
+          <div class="hero-stats">
+            <div>
+              <div class="hero-stat-value">1,240+</div>
+              <div class="hero-stat-label">Students enrolled</div>
+            </div>
+            <div>
+              <div class="hero-stat-value">12</div>
+              <div class="hero-stat-label">Courses available</div>
+            </div>
+            <div>
+              <div class="hero-stat-value">4.9</div>
+              <div class="hero-stat-label">Average rating</div>
+            </div>
+            <div>
+              <div class="hero-stat-value">30-day</div>
+              <div class="hero-stat-label">Refund guarantee</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Featured course preview card -->
+        <div class="hero-card" aria-label="Sample course preview">
+          <div class="hero-card-head">
+            <div class="hero-card-head-label">Featured Course</div>
+            <div class="hero-card-head-title">Full-Stack Vibe Coding with Next.js</div>
+          </div>
+          <div class="hero-card-body">
+            <ul class="hero-card-modules" aria-label="Course modules">
+              <li class="hero-card-module">
+                <span class="hero-card-module-num" aria-hidden="true">01</span>
+                <span class="check-dot" aria-hidden="true">
+                  <svg width="8" height="6" viewBox="0 0 8 6" fill="none" aria-hidden="true">
+                    <path d="M1 3l2 2 4-4" stroke="#B94A2F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                Prompt engineering for code
+              </li>
+              <li class="hero-card-module">
+                <span class="hero-card-module-num" aria-hidden="true">02</span>
+                <span class="check-dot" aria-hidden="true">
+                  <svg width="8" height="6" viewBox="0 0 8 6" fill="none" aria-hidden="true">
+                    <path d="M1 3l2 2 4-4" stroke="#B94A2F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                React components with Claude
+              </li>
+              <li class="hero-card-module">
+                <span class="hero-card-module-num" aria-hidden="true">03</span>
+                <span class="check-dot" aria-hidden="true">
+                  <svg width="8" height="6" viewBox="0 0 8 6" fill="none" aria-hidden="true">
+                    <path d="M1 3l2 2 4-4" stroke="#B94A2F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                Database design via prompts
+              </li>
+              <li class="hero-card-module">
+                <span class="hero-card-module-num" aria-hidden="true">04</span>
+                <span class="check-dot" aria-hidden="true">
+                  <svg width="8" height="6" viewBox="0 0 8 6" fill="none" aria-hidden="true">
+                    <path d="M1 3l2 2 4-4" stroke="#B94A2F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                Deploy to production
+              </li>
+            </ul>
+            <div class="hero-card-more">+6 more modules</div>
+            <div class="hero-card-footer">
+              <div>
+                <div class="hero-card-price-label">One-time purchase</div>
+                <div class="hero-card-price">$129</div>
+              </div>
+              <a href="#courses" class="btn btn-primary">Enroll →</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── COURSES ── -->
+    <section class="section" id="courses" aria-labelledby="courses-heading">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-header-label"><span class="label-tag">Courses</span></div>
+          <h2 class="section-title" id="courses-heading">Learn by building, not by watching</h2>
+          <p class="section-desc">Every course ends with a deployed project. Structured lessons, working code, real outcomes.</p>
+        </div>
+
+        <div class="courses-grid">
+
+          <article class="course-card">
+            <div class="course-card-top">
+              <span class="badge badge-beginner">Beginner</span>
+              <span class="badge-mono">8 hrs · 24 lessons</span>
+            </div>
+            <div class="course-card-main">
+              <h3 class="course-title">Vibe Coding Fundamentals</h3>
+              <p class="course-desc">Start from zero. Learn how to have productive conversations with AI to write working code — no prior programming required.</p>
+              <ul class="course-topics" aria-label="Topics covered">
+                <li class="course-topic">Setting up Claude, Cursor, and GitHub Copilot</li>
+                <li class="course-topic">Writing prompts that produce usable code</li>
+                <li class="course-topic">Reading and debugging AI-generated output</li>
+                <li class="course-topic">Building and deploying your first web app</li>
+              </ul>
+            </div>
+            <div class="course-card-footer">
+              <div class="course-duration">Self-paced · Lifetime access</div>
+              <div class="course-price">$79</div>
+            </div>
+          </article>
+
+          <article class="course-card">
+            <div class="course-card-top">
+              <span class="badge badge-intermediate">Intermediate</span>
+              <span class="badge-mono">14 hrs · 38 lessons</span>
+            </div>
+            <div class="course-card-main">
+              <h3 class="course-title">Full-Stack Vibe Coding with Next.js</h3>
+              <p class="course-desc">Build complete web applications with React, Next.js, and a database — using AI assistance at every step of the stack.</p>
+              <ul class="course-topics" aria-label="Topics covered">
+                <li class="course-topic">Component architecture via prompting</li>
+                <li class="course-topic">API routes, server actions, and data fetching</li>
+                <li class="course-topic">Supabase and Prisma data modeling</li>
+                <li class="course-topic">Auth, payments, and Vercel deployment</li>
+              </ul>
+            </div>
+            <div class="course-card-footer">
+              <div class="course-duration">Self-paced · Lifetime access</div>
+              <div class="course-price">$129</div>
+            </div>
+          </article>
+
+          <article class="course-card">
+            <div class="course-card-top">
+              <span class="badge badge-advanced">Advanced</span>
+              <span class="badge-mono">12 hrs · 31 lessons</span>
+            </div>
+            <div class="course-card-main">
+              <h3 class="course-title">SaaS Product Development</h3>
+              <p class="course-desc">From idea to paying customers. Build a full SaaS product — architecture, billing, onboarding, and analytics — with AI as your co-developer.</p>
+              <ul class="course-topics" aria-label="Topics covered">
+                <li class="course-topic">Scoping and architecture decisions</li>
+                <li class="course-topic">Stripe subscriptions and billing logic</li>
+                <li class="course-topic">User onboarding and retention flows</li>
+                <li class="course-topic">Usage tracking and product analytics</li>
+              </ul>
+            </div>
+            <div class="course-card-footer">
+              <div class="course-duration">Self-paced · Lifetime access</div>
+              <div class="course-price">$149</div>
+            </div>
+          </article>
+
+          <article class="course-card">
+            <div class="course-card-top">
+              <span class="badge badge-neutral">All levels</span>
+              <span class="badge-mono">6 hrs · 18 lessons</span>
+            </div>
+            <div class="course-card-main">
+              <h3 class="course-title">UI Design for Vibe Coders</h3>
+              <p class="course-desc">Stop shipping interfaces that look AI-generated. A practical design system workflow that produces polished, product-specific UI every time.</p>
+              <ul class="course-topics" aria-label="Topics covered">
+                <li class="course-topic">Design tokens and visual systems via prompting</li>
+                <li class="course-topic">Typography, color, and spacing decisions</li>
+                <li class="course-topic">Component states: hover, loading, error, empty</li>
+                <li class="course-topic">UI review checklist and quality standards</li>
+              </ul>
+            </div>
+            <div class="course-card-footer">
+              <div class="course-duration">Self-paced · Lifetime access</div>
+              <div class="course-price">$89</div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── HOW IT WORKS ── -->
+    <section class="how-section" id="how-it-works" aria-labelledby="how-heading">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-header-label">
+            <span class="label-tag" style="color:rgba(255,255,255,0.45);">Process</span>
+          </div>
+          <h2 class="section-title" id="how-heading">From zero to shipped in four steps</h2>
+          <p class="section-desc">Each course follows the same progression — product thinking first, implementation second, deployment third.</p>
+        </div>
+        <div class="how-steps">
+          <div class="how-step">
+            <div class="how-step-num">Step 01</div>
+            <div class="how-step-rule" aria-hidden="true"></div>
+            <div class="how-step-title">Define the product</div>
+            <p class="how-step-desc">Clarify what you're building, who it's for, and what it must do. We work from real product context, not toy examples.</p>
+          </div>
+          <div class="how-step">
+            <div class="how-step-num">Step 02</div>
+            <div class="how-step-rule" aria-hidden="true"></div>
+            <div class="how-step-title">Learn the workflows</div>
+            <p class="how-step-desc">Structured lessons covering prompt patterns, code review, debugging with AI, and building a repeatable development loop.</p>
+          </div>
+          <div class="how-step">
+            <div class="how-step-num">Step 03</div>
+            <div class="how-step-rule" aria-hidden="true"></div>
+            <div class="how-step-title">Build alongside instructors</div>
+            <p class="how-step-desc">Follow along in real codebases. Every lesson produces working output you can extend and adapt for your own project.</p>
+          </div>
+          <div class="how-step">
+            <div class="how-step-num">Step 04</div>
+            <div class="how-step-rule" aria-hidden="true"></div>
+            <div class="how-step-title">Ship and maintain</div>
+            <p class="how-step-desc">Deploy your project and learn to continue iterating — reviewing output, handling edge cases, and keeping code maintainable.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TESTIMONIALS ── -->
+    <section class="section" id="testimonials" aria-labelledby="testimonials-heading">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-header-label"><span class="label-tag">Student outcomes</span></div>
+          <h2 class="section-title" id="testimonials-heading">Built by people like you</h2>
+          <p class="section-desc">Real products our students shipped after completing their courses.</p>
+        </div>
+        <div class="testimonials-grid">
+
+          <article class="testimonial-card">
+            <p class="testimonial-quote">
+              <span class="testimonial-open-quote" aria-hidden="true">"</span>The Full-Stack course was the first time I actually understood what I was building. It's not about copying output — it's about having a real conversation with the AI.
+            </p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar" aria-hidden="true">MK</div>
+              <div>
+                <div class="testimonial-name">Marcus K.</div>
+                <div class="testimonial-role">Product manager → indie developer</div>
+              </div>
+              <span class="testimonial-tag">Full-Stack</span>
+            </div>
+          </article>
+
+          <article class="testimonial-card">
+            <p class="testimonial-quote">
+              <span class="testimonial-open-quote" aria-hidden="true">"</span>I launched a SaaS tool six weeks after starting the course. Real users, real invoices, running on Vercel. I built the whole thing with Claude and Cursor.
+            </p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar" aria-hidden="true">SC</div>
+              <div>
+                <div class="testimonial-name">Soo-Ah C.</div>
+                <div class="testimonial-role">Designer — launched at $490 MRR</div>
+              </div>
+              <span class="testimonial-tag">SaaS</span>
+            </div>
+          </article>
+
+          <article class="testimonial-card">
+            <p class="testimonial-quote">
+              <span class="testimonial-open-quote" aria-hidden="true">"</span>The UI Design course changed how I prompt for front-end work. I stopped getting generic AI output and started getting interfaces that look like they came from a person.
+            </p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar" aria-hidden="true">JP</div>
+              <div>
+                <div class="testimonial-name">Jamie P.</div>
+                <div class="testimonial-role">Freelance developer</div>
+              </div>
+              <span class="testimonial-tag">UI Design</span>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PRICING ── -->
+    <section class="section pricing-section" id="pricing" aria-labelledby="pricing-heading">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-header-label"><span class="label-tag">Pricing</span></div>
+          <h2 class="section-title" id="pricing-heading">Pick your path</h2>
+          <p class="section-desc">Buy individual courses, or get everything with a subscription. Cancel any time.</p>
+        </div>
+        <div class="pricing-grid">
+
+          <!-- Individual -->
+          <div class="pricing-card">
+            <div class="pricing-tier">Individual Courses</div>
+            <div>
+              <div class="pricing-price">
+                <span class="pricing-amount">$79</span>
+                <span class="pricing-period">– $149 per course</span>
+              </div>
+            </div>
+            <p class="pricing-desc">Buy only what you need. Lifetime access to every course you purchase, including all future updates.</p>
+            <ul class="pricing-features" aria-label="Plan features">
+              <li class="pricing-feature">
+                <span class="check-circle" aria-hidden="true">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1.5 4l2.5 2.5 5-5" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                Lifetime course access
+              </li>
+              <li class="pricing-feature">
+                <span class="check-circle" aria-hidden="true">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1.5 4l2.5 2.5 5-5" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                Downloadable project files
+              </li>
+              <li class="pricing-feature">
+                <span class="check-circle" aria-hidden="true">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1.5 4l2.5 2.5 5-5" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                30-day refund guarantee
+              </li>
+              <li class="pricing-feature pricing-feature--dim">
+                <span class="dash-marker" aria-hidden="true">–</span>
+                Community forum access
+              </li>
+              <li class="pricing-feature pricing-feature--dim">
+                <span class="dash-marker" aria-hidden="true">–</span>
+                New courses auto-included
+              </li>
+            </ul>
+            <a href="#courses" class="btn btn-secondary btn-full">Browse courses</a>
+          </div>
+
+          <!-- All-Access Annual -->
+          <div class="pricing-card pricing-card--featured" aria-label="Most popular plan">
+            <div class="pricing-featured-badge" aria-label="Most popular">Most popular</div>
+            <div class="pricing-tier">All-Access Annual</div>
+            <div>
+              <div class="pricing-price">
+                <span class="pricing-amount">$149</span>
+                <span class="pricing-period">/year</span>
+              </div>
+              <p class="pricing-note">Billed annually — <strong>save $130 vs. monthly</strong></p>
+            </div>
+            <p class="pricing-desc">Every course on the platform, plus new releases the moment they drop.</p>
+            <ul class="pricing-features" aria-label="Plan features">
+              <li class="pricing-feature">
+                <span class="check-circle" aria-hidden="true">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1.5 4l2.5 2.5 5-5" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                All 12 current courses
+              </li>
+              <li class="pricing-feature">
+                <span class="check-circle" aria-hidden="true">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1.5 4l2.5 2.5 5-5" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                New courses included automatically
+              </li>
+              <li class="pricing-feature">
+                <span class="check-circle" aria-hidden="true">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1.5 4l2.5 2.5 5-5" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                Community forum access
+              </li>
+              <li class="pricing-feature">
+                <span class="check-circle" aria-hidden="true">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1.5 4l2.5 2.5 5-5" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                Downloadable project files
+              </li>
+              <li class="pricing-feature">
+                <span class="check-circle" aria-hidden="true">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1.5 4l2.5 2.5 5-5" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                30-day refund guarantee
+              </li>
+            </ul>
+            <a href="#" class="btn btn-primary btn-full">Get all-access →</a>
+          </div>
+
+          <!-- Team -->
+          <div class="pricing-card">
+            <div class="pricing-tier">Team</div>
+            <div>
+              <div class="pricing-price">
+                <span class="pricing-amount">$499</span>
+                <span class="pricing-period">/year</span>
+              </div>
+              <p class="pricing-note">Up to 5 seats — <strong>$100 per person</strong></p>
+            </div>
+            <p class="pricing-desc">Get your whole team building with AI. Centralized billing, individual progress tracking.</p>
+            <ul class="pricing-features" aria-label="Plan features">
+              <li class="pricing-feature">
+                <span class="check-circle" aria-hidden="true">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1.5 4l2.5 2.5 5-5" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                Everything in All-Access
+              </li>
+              <li class="pricing-feature">
+                <span class="check-circle" aria-hidden="true">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1.5 4l2.5 2.5 5-5" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                5 team seats
+              </li>
+              <li class="pricing-feature">
+                <span class="check-circle" aria-hidden="true">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1.5 4l2.5 2.5 5-5" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                Team progress dashboard
+              </li>
+              <li class="pricing-feature">
+                <span class="check-circle" aria-hidden="true">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1.5 4l2.5 2.5 5-5" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                Centralized billing
+              </li>
+              <li class="pricing-feature pricing-feature--dim">
+                <span class="dash-marker" aria-hidden="true">–</span>
+                Additional seats at $80/seat/yr
+              </li>
+            </ul>
+            <a href="#" class="btn btn-secondary btn-full">Contact for teams →</a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FAQ ── -->
+    <section class="section" id="faq" aria-labelledby="faq-heading">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-header-label"><span class="label-tag">FAQ</span></div>
+          <h2 class="section-title" id="faq-heading">Common questions</h2>
+        </div>
+        <div class="faq-list">
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-a1">
+              Do I need prior coding experience?
+              <span class="faq-icon" aria-hidden="true">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M5 1v8M1 5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </span>
+            </button>
+            <div class="faq-answer" id="faq-a1" role="region" aria-label="Answer">
+              <p class="faq-answer-inner">No. Vibe Coding Fundamentals is designed for complete beginners. You'll need a computer, a free Claude account, and a willingness to read and edit text. More advanced courses assume you've completed Fundamentals or have basic familiarity with HTML, CSS, and JavaScript.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-a2">
+              Which AI tools are covered?
+              <span class="faq-icon" aria-hidden="true">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M5 1v8M1 5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </span>
+            </button>
+            <div class="faq-answer" id="faq-a2" role="region" aria-label="Answer">
+              <p class="faq-answer-inner">Courses cover Claude (Anthropic), Cursor (IDE), GitHub Copilot, and Codex. We focus on workflow and mental models rather than any single tool — so your skills transfer as the tools evolve. Every tool referenced has a free tier sufficient for course exercises.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-a3">
+              How long do I have access?
+              <span class="faq-icon" aria-hidden="true">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M5 1v8M1 5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </span>
+            </button>
+            <div class="faq-answer" id="faq-a3" role="region" aria-label="Answer">
+              <p class="faq-answer-inner">Individual course purchases include lifetime access and all future updates to that course. Subscription plans include access for the duration of your active subscription. If you cancel, you retain access through the end of your billing period.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-a4">
+              What is the refund policy?
+              <span class="faq-icon" aria-hidden="true">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M5 1v8M1 5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </span>
+            </button>
+            <div class="faq-answer" id="faq-a4" role="region" aria-label="Answer">
+              <p class="faq-answer-inner">We offer a 30-day full refund on individual course purchases and annual subscriptions. If you've completed less than 30% of a course and aren't satisfied, email us and we'll refund the full amount — no questions asked.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-a5">
+              Are courses self-paced?
+              <span class="faq-icon" aria-hidden="true">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M5 1v8M1 5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </span>
+            </button>
+            <div class="faq-answer" id="faq-a5" role="region" aria-label="Answer">
+              <p class="faq-answer-inner">Yes, fully self-paced with no deadlines or live sessions. Most students complete individual courses in 2–4 weeks depending on time available. Everything is pre-recorded and available immediately after purchase.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CTA BANNER ── -->
+    <section class="cta-section" aria-labelledby="cta-heading">
+      <div class="container">
+        <div class="cta-label label-tag">Start learning today</div>
+        <h2 class="cta-title" id="cta-heading">
+          Your next product<br>
+          <em>starts with a prompt.</em>
+        </h2>
+        <p class="cta-desc">Join 1,240+ builders learning to ship with AI. No experience required.</p>
+        <div class="cta-actions">
+          <a href="#courses" class="btn btn-inverse">Browse all courses →</a>
+          <a href="#pricing" class="btn btn-ghost">See pricing</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand-name">VibeCraft</div>
+          <p class="footer-brand-desc">Practical courses for building real products with AI coding tools.</p>
+        </div>
+        <nav aria-label="Courses">
+          <div class="footer-nav-title">Courses</div>
+          <ul class="footer-nav-links">
+            <li><a href="#">Fundamentals</a></li>
+            <li><a href="#">Full-Stack Next.js</a></li>
+            <li><a href="#">SaaS Development</a></li>
+            <li><a href="#">UI Design</a></li>
+          </ul>
+        </nav>
+        <nav aria-label="Platform">
+          <div class="footer-nav-title">Platform</div>
+          <ul class="footer-nav-links">
+            <li><a href="#">Pricing</a></li>
+            <li><a href="#">For teams</a></li>
+            <li><a href="#">Community</a></li>
+            <li><a href="#">Blog</a></li>
+          </ul>
+        </nav>
+        <nav aria-label="Company">
+          <div class="footer-nav-title">Company</div>
+          <ul class="footer-nav-links">
+            <li><a href="#">About</a></li>
+            <li><a href="#">Instructors</a></li>
+            <li><a href="#">Affiliates</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-copyright">© 2026 VibeCraft. All rights reserved.</p>
+        <ul class="footer-legal">
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">Terms</a></li>
+          <li><a href="#">Refunds</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // FAQ accordion
+    document.querySelectorAll('.faq-question').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const isOpen = btn.getAttribute('aria-expanded') === 'true';
+        const answer = document.getElementById(btn.getAttribute('aria-controls'));
+
+        document.querySelectorAll('.faq-question').forEach(b => {
+          b.setAttribute('aria-expanded', 'false');
+          document.getElementById(b.getAttribute('aria-controls')).classList.remove('is-open');
+        });
+
+        if (!isOpen) {
+          btn.setAttribute('aria-expanded', 'true');
+          answer.classList.add('is-open');
+        }
+      });
+    });
+
+    // Mobile nav toggle
+    const menuBtn = document.querySelector('.nav-menu-btn');
+    const mobileNav = document.getElementById('mobile-nav');
+
+    menuBtn.addEventListener('click', () => {
+      const isOpen = menuBtn.getAttribute('aria-expanded') === 'true';
+      menuBtn.setAttribute('aria-expanded', String(!isOpen));
+      mobileNav.classList.toggle('is-open');
+    });
+
+    mobileNav.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        menuBtn.setAttribute('aria-expanded', 'false');
+        mobileNav.classList.remove('is-open');
+      });
+    });
+  </script>
+
+</body>
+</html>
