@@ -5,7 +5,7 @@ Use this checklist when reviewing, refactoring, or finalizing any interface crea
 ## Review Method
 
 Review in this order:
-1. Product fit
+1. Product fit 
 2. Visual thesis
 3. Information architecture
 4. Accessibility
@@ -307,3 +307,4 @@ Anti-AI aesthetic verdict:
 
 Recommended next action:
 - [Specific next step]
+```

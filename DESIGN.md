@@ -95,7 +95,7 @@ radius:
   full: "999px"
 shadow:
   sm: "0 1px 2px rgba(17, 19, 21, 0.06)"
-  md: "0 12px 30px rgba(17, 19, 21, 0.10)"
+  md: "0 12px 30px rgba(17, 19, 21, 0.1)"
   lg: "0 24px 60px rgba(17, 19, 21, 0.14)"
 motion:
   fast: "140ms ease-out"
@@ -120,6 +120,8 @@ components:
     border: "1px solid {colors.borderStrong}"
     hoverBackground: "{colors.backgroundSubtle}"
     radius: "{radius.full}"
+    paddingInline: "{spacing.5}"
+    paddingBlock: "{spacing.3}"
   card:
     background: "{colors.surface}"
     border: "1px solid {colors.border}"
@@ -139,6 +141,7 @@ components:
 Crafted Engineering is a restrained, editorial-technical design system for interfaces that need to feel serious, precise, and human-made.
 
 It is suitable for:
+
 - Engineering tools
 - AI product interfaces
 - SaaS dashboards
@@ -156,6 +159,7 @@ The design avoids generic AI aesthetics by combining warm physical surfaces, edi
 The interface should feel like a well-designed technical publication crossed with a modern engineering workstation.
 
 It should not feel like:
+
 - A generic SaaS template
 - A decorative AI demo
 - A default component library page
@@ -164,6 +168,7 @@ It should not feel like:
 - A random bento grid
 
 The system should communicate:
+
 - Precision
 - Trust
 - Calm control
@@ -190,6 +195,7 @@ Use `surfaceInverse` for dark technical panels, terminal-like blocks, or strong 
 Use `accent` sparingly. It should drive action, not decoration.
 
 Good uses:
+
 - Primary call-to-action
 - Active navigation state
 - Selected filter
@@ -198,6 +204,7 @@ Good uses:
 - Key diagram node
 
 Bad uses:
+
 - Every icon
 - Large gradient backgrounds
 - Random section decorations
@@ -217,12 +224,14 @@ Do not use status colors as decoration.
 Use the display and heading type for editorial emphasis. Headings should feel deliberate, not inflated.
 
 Good patterns:
+
 - Large compressed hero headline with short line length
 - Strong section titles paired with concise body copy
 - Editorial labels above sections
 - Technical subheads in sans-serif
 
 Avoid:
+
 - Every card having oversized serif headings
 - Excessively long display text
 - Centered text everywhere
@@ -239,6 +248,7 @@ Do not use low-contrast gray for core content.
 ### Numeric Text
 
 Use the numeric style for:
+
 - Dashboard metrics
 - Price
 - Time
@@ -256,6 +266,7 @@ Use tabular numerals for all metric-heavy components.
 ### Grid
 
 Use clear grid structures:
+
 - 12-column grid for landing pages and dashboards
 - 2-column editorial grid for content-heavy pages
 - Sidebar + workspace layout for tools
@@ -275,6 +286,7 @@ Do not use the same spacing rhythm for every section. Important areas can breath
 ### Section Structure
 
 Each page should have:
+
 - A clear entry point
 - A primary user action
 - A secondary path
@@ -293,6 +305,7 @@ Secondary buttons are transparent or quiet.
 Avoid having multiple primary buttons in the same visual group.
 
 Button labels must be action-specific:
+
 - Good: "Generate report", "Export CSV", "Start audit"
 - Bad: "Click here", "Learn more", "Submit" unless context is obvious
 
@@ -301,6 +314,7 @@ Button labels must be action-specific:
 Cards should not all look the same.
 
 Use cards for:
+
 - Grouped related content
 - Product modules
 - Data summaries
@@ -309,11 +323,13 @@ Use cards for:
 - Audit results
 
 Avoid cards for:
+
 - Every paragraph
 - Pure decoration
 - Artificial bento grids with no hierarchy
 
 Card hierarchy should vary with content priority:
+
 - Primary card: larger, richer, stronger composition
 - Secondary card: compact, quiet
 - Utility card: dense, functional
@@ -321,6 +337,7 @@ Card hierarchy should vary with content priority:
 ### Tables
 
 Tables should prioritize scanning:
+
 - Left-align text
 - Right-align numbers
 - Use tabular numerals
@@ -332,6 +349,7 @@ Tables should prioritize scanning:
 ### Forms
 
 Forms must be explicit:
+
 - Visible label
 - Helpful hint if needed
 - Error message near the field
@@ -347,6 +365,7 @@ Avoid placeholder-only forms.
 Navigation should reflect product architecture.
 
 Use:
+
 - Top navigation for marketing or simple products
 - Sidebar navigation for dashboards and tools
 - Segmented controls for local view switching
@@ -359,6 +378,7 @@ Do not hide primary navigation behind decorative menus on desktop.
 Motion should be subtle, useful, and fast.
 
 Use motion for:
+
 - Panel entrance
 - Filter transition
 - Disclosure
@@ -368,6 +388,7 @@ Use motion for:
 - Progress feedback
 
 Avoid:
+
 - Constant floating animation
 - Infinite glow
 - Unnecessary parallax
@@ -381,6 +402,7 @@ Always support reduced-motion preferences.
 Dark mode should not simply invert colors.
 
 Dark mode rules:
+
 - Use deep neutral backgrounds, not pure black by default.
 - Reduce shadow reliance.
 - Increase border visibility.
@@ -393,6 +415,7 @@ Dark mode rules:
 ### Mobile
 
 Mobile must be task-first:
+
 - Prioritize primary action
 - Collapse secondary metadata
 - Avoid large empty hero sections
@@ -405,6 +428,7 @@ Mobile must be task-first:
 Tablet should not be treated as stretched mobile.
 
 Use:
+
 - Two-column layouts when content supports it
 - Compact navigation
 - Preserved dashboard hierarchy
@@ -415,6 +439,7 @@ Use:
 Desktop should use space productively.
 
 Avoid:
+
 - Over-wide text lines
 - Centered narrow content on all pages
 - Large empty dashboard regions
@@ -423,6 +448,7 @@ Avoid:
 ## Accessibility Rules
 
 Required:
+
 - Sufficient text contrast
 - Visible focus states
 - Keyboard navigability
@@ -436,16 +462,19 @@ Required:
 ## Implementation Notes
 
 When using Tailwind CSS:
+
 - Map these tokens into CSS variables or theme extension.
 - Avoid arbitrary values unless they encode a deliberate design decision.
 - Keep repeated values tokenized.
 
 When using shadcn/ui:
+
 - Restyle components to match this design system.
 - Do not ship default component appearance unchanged.
 - Ensure component states match this file.
 
 When using plain CSS:
+
 - Define tokens in `:root`.
 - Use component classes with clear naming.
 - Keep state styles explicit.
@@ -455,6 +484,7 @@ When using plain CSS:
 A finished interface should feel specific, useful, and intentional.
 
 It should be possible to explain:
+
 - Why this palette fits the product
 - Why the typography fits the audience
 - Why the layout supports the task

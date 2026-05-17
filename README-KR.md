@@ -469,7 +469,7 @@ Avoid generic AI visual patterns.
 - 기술 문서 사이트
 - 데이터 중심 인터페이스
 - 엔지니어링 도구
-- MVP UI polish
+- MVP UI 완성도 개선
 - 바이브코딩 결과물 개선
 
 덜 적합한 작업은 다음과 같습니다.
@@ -527,13 +527,7 @@ Avoid generic AI visual patterns.
 
 ## 라이선스
 
-공개 배포 전에 원하는 라이선스를 추가하십시오.
-
-추천 옵션은 다음과 같습니다.
-
-- 자유로운 재사용을 위한 MIT
-- 특허 조항이 포함된 자유로운 재사용을 위한 Apache-2.0
-- 문서 중심 배포를 위한 CC BY 4.0
+MIT License. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하십시오.
 
 ## 크레딧
 

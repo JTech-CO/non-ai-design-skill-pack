@@ -386,7 +386,7 @@ When creating or editing code:
 4. Mention any important limitations or next steps.
 5. If reviewing code, provide prioritized issues and concrete fixes.
 
-When writing files:
+When generating code or files:
 - Keep the design system centralized.
 - Use `DESIGN.md` when available.
 - Add or update tokens only when necessary.

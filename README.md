@@ -527,13 +527,7 @@ Before publishing this repository, confirm:
 
 ## License
 
-Add your preferred license before publishing.
-
-Suggested options:
-
-- MIT for permissive reuse
-- Apache-2.0 for permissive reuse with patent language
-- CC BY 4.0 for documentation-focused distribution
+MIT License. See [LICENSE](LICENSE) for details.
 
 ## Credits
 
